@@ -9,61 +9,94 @@
   justify-content: center;
   padding: 40px 20px;
   position: relative;
-  background: #0D0608;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
   overflow: hidden;
 }
 
 /* ── Background ───────────────────────────── */
 .auth-bg { position: absolute; inset: 0; overflow: hidden; }
 
+/* Grid overlay that pans slowly */
+.auth-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(200, 16, 46, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 16, 46, 0.035) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridPan 40s linear infinite;
+  pointer-events: none;
+}
+
 .auth-blob {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.18;
+  filter: blur(80px);
+  opacity: 0.12;
   pointer-events: none;
+  mix-blend-mode: multiply;
 }
 .auth-blob--1 {
   width: 600px; height: 600px;
-  background: radial-gradient(circle, #C8102E 0%, transparent 70%);
-  top: -200px; right: -150px;
-  animation: float 10s ease-in-out infinite;
+  background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+  top: -150px; right: -100px;
+  animation: morphBlob1 18s ease-in-out infinite;
 }
 .auth-blob--2 {
-  width: 400px; height: 400px;
-  background: radial-gradient(circle, #FF5733 0%, transparent 70%);
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
   bottom: -100px; left: -100px;
-  animation: float 13s ease-in-out infinite reverse;
+  animation: morphBlob2 22s ease-in-out infinite;
+}
+.auth-blob--3 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, var(--primary-light) 0%, transparent 70%);
+  top: 35%; left: 30%;
+  animation: morphBlob3 20s ease-in-out infinite;
 }
 .auth-noise {
   position: absolute;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  opacity: 0.4;
+  opacity: 0.25;
+  pointer-events: none;
 }
 
-/* ── Back link ─────────────────────────────── */
+/* ── Back link — Glassmorphic Pill Button ── */
 .auth-back {
   position: fixed; top: 24px; left: 24px;
-  display: inline-flex; align-items: center; gap: 6px;
-  color: rgba(255,255,255,0.4);
-  font-size: 0.82rem; font-weight: 500; letter-spacing: 0.3px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(200, 16, 46, 0.08);
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 12px rgba(200, 16, 46, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-light);
+  font-size: 0.85rem; font-weight: 600; letter-spacing: 0.3px;
   text-decoration: none; z-index: 10;
-  transition: color 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.auth-back:hover { color: rgba(255,255,255,0.85); }
+.auth-back:hover {
+  color: var(--primary);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(200, 16, 46, 0.08);
+}
 
-/* ── Card ─────────────────────────────────── */
+/* ── Card — Softer elegant shadow for light background ── */
 .auth-card {
   position: relative; z-index: 1;
   width: 100%; max-width: 400px;
-  background: #FFFAF9;
-  border-radius: 20px;
-  padding: 36px 32px 32px;
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 40px 36px 36px;
   box-shadow:
-    0 0 0 1px rgba(200,16,46,0.08),
-    0 32px 64px rgba(0,0,0,0.38),
-    0 8px 24px rgba(200,16,46,0.1);
+    0 0 0 1px rgba(200, 16, 46, 0.05),
+    0 24px 60px rgba(200, 16, 46, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 /* ── Logo ─────────────────────────────────── */
@@ -251,4 +284,47 @@
   border: 2.5px solid rgba(255,255,255,0.3);
   border-top-color: white; border-radius: 50%;
   animation: spin 0.7s linear infinite; display: inline-block;
+}
+
+/* ── Custom Animations for Advanced Light Theme ── */
+@keyframes gridPan {
+  0% { background-position: 0px 0px; }
+  100% { background-position: 120px 120px; }
+}
+
+@keyframes morphBlob1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+  }
+  33% {
+    transform: translate(40px, -60px) scale(1.08) rotate(120deg);
+    border-radius: 70% 30% 52% 48% / 60% 40% 60% 40%;
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.92) rotate(240deg);
+    border-radius: 50% 50% 30% 70% / 40% 60% 40% 60%;
+  }
+}
+
+@keyframes morphBlob2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 50% 50% 30% 70% / 40% 60% 40% 60%;
+  }
+  50% {
+    transform: translate(-50px, 50px) scale(1.12) rotate(-180deg);
+    border-radius: 30% 70% 70% 30% / 50% 30% 70% 50%;
+  }
+}
+
+@keyframes morphBlob3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 60% 40% 50% 50% / 50% 60% 40% 50%;
+  }
+  50% {
+    transform: translate(60px, 40px) scale(0.88) rotate(180deg);
+    border-radius: 40% 60% 60% 40% / 60% 50% 50% 40%;
+  }
 }
