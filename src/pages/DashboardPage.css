@@ -349,9 +349,118 @@
 }
 .hired-close:hover { transform:translateY(-2px); background:var(--primary-light); }
 
+/* ── Interview Diary & Notes ─────────────── */
+.notes-section {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  padding: 24px;
+  margin-top: 32px;
+  box-shadow: 0 4px 20px rgba(200, 16, 46, 0.02);
+  transition: all 0.38s ease;
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.notes-header {
+  margin-bottom: 16px;
+}
+
+.notes-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.notes-title-row h3 {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--dark);
+}
+
+.notes-subtitle {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.notes-textarea {
+  width: 100%;
+  min-height: 140px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  padding: 16px;
+  font-size: 0.92rem;
+  color: var(--dark);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.notes-textarea::placeholder {
+  color: rgba(122, 91, 97, 0.5);
+  font-style: italic;
+  font-size: 0.86rem;
+}
+
+.notes-textarea:focus {
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 4px var(--primary-glow);
+}
+
+/* Saving Indicator States */
+.saving-indicator {
+  display: flex;
+  align-items: center;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.saving-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  line-height: 1;
+}
+
+.saving-status--saving {
+  background: rgba(122, 91, 97, 0.08);
+  color: var(--muted);
+}
+
+.saving-status--saved {
+  background: var(--success-pale);
+  color: var(--success);
+}
+
+.saving-status--error {
+  background: var(--danger-pale);
+  color: var(--danger);
+}
+
+/* Pulsing Dot animation for saving state */
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: pulse 1.2s infinite ease-in-out;
+  display: inline-block;
+}
+
 /* ── Responsive ───────────────────────────── */
 @media (max-width:768px) {
   .dashboard { flex-direction:column; }
   .sidebar { width:100%; min-width:0; max-height:50vh; }
   .dashboard-main { padding:18px; }
 }
+

@@ -171,6 +171,14 @@ function UserCard({ user, index, onReload }) {
                     <Trash2 size={13} />
                   </button>
                 </div>
+
+                {/* Candidate Interview Diary Notes */}
+                {job.notes && (
+                  <div className="admin-job-notes">
+                    <span className="admin-job-notes-lbl">Candidate thoughts:</span>
+                    <p className="admin-job-notes-text">“{job.notes}”</p>
+                  </div>
+                )}
               </div>
             ))
           )}

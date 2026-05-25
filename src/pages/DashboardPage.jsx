@@ -279,6 +279,44 @@ export default function DashboardPage() {
   const [newRoundName, setNewRoundName] = useState('');
   const [addingRound, setAddingRound] = useState(false);
   const [prevOfferStatus, setPrevOfferStatus] = useState({});
+  const [notesText, setNotesText] = useState('');
+  const [savingNotes, setSavingNotes] = useState('idle');
+  const [debounceTimeout, setDebounceTimeout] = useState(null);
+
+  // Sync editor value when selection changes
+  const selectedJob = jobs.find(j => j.id === selectedJobId);
+
+  useEffect(() => {
+    if (selectedJob) {
+      setNotesText(selectedJob.notes || '');
+      setSavingNotes('idle');
+    } else {
+      setNotesText('');
+    }
+  }, [selectedJobId]);
+
+  const handleNotesChange = (e) => {
+    const text = e.target.value;
+    setNotesText(text);
+    setSavingNotes('saving');
+
+    if (debounceTimeout) clearTimeout(debounceTimeout);
+
+    const timeout = setTimeout(async () => {
+      if (!selectedJobId) return;
+      try {
+        await updateJob(selectedJobId, { notes: text });
+        setSavingNotes('saved');
+        const j = await getUserJobs(user.id);
+        setJobs(j);
+      } catch (err) {
+        console.error("Failed to auto-save notes:", err);
+        setSavingNotes('error');
+      }
+    }, 800);
+
+    setDebounceTimeout(timeout);
+  };
 
   const loadJobs = useCallback(async () => {
     try {
@@ -301,9 +339,9 @@ export default function DashboardPage() {
     }
   }, [user.id]);
 
-  useEffect(() => { loadJobs(); }, [loadJobs]);
-
-  const selectedJob = jobs.find(j => j.id === selectedJobId);
+  useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
 
   const handleAddJob = async ({ company, role }) => {
     try {
@@ -657,6 +695,41 @@ export default function DashboardPage() {
                     </motion.form>
                   )}
                 </div>
+              </div>
+
+              {/* Interview Diary & Thoughts Section — Premium Auto-saving card */}
+              <div className="notes-section">
+                <div className="notes-header">
+                  <div className="notes-title-row">
+                    <h3>📝 Interview Diary & Thoughts</h3>
+                    <div className="saving-indicator">
+                      {savingNotes === 'saving' && (
+                        <span className="saving-status saving-status--saving">
+                          <span className="pulse-dot" /> Saving...
+                        </span>
+                      )}
+                      {savingNotes === 'saved' && (
+                        <span className="saving-status saving-status--saved">
+                          <Check size={12} /> Saved to cloud
+                        </span>
+                      )}
+                      {savingNotes === 'error' && (
+                        <span className="saving-status saving-status--error">
+                          <AlertCircle size={12} /> Save error
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="notes-subtitle">
+                    Share your thoughts, document what went well, what went wrong, or key questions asked so you can review them.
+                  </p>
+                </div>
+                <textarea
+                  className="notes-textarea"
+                  value={notesText}
+                  onChange={handleNotesChange}
+                  placeholder="Share your interview experience... What questions did they ask? What went right? What went wrong? Documenting your thoughts helps you learn and share insights easily!"
+                />
               </div>
             </motion.div>
           )}
