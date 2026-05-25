@@ -7,6 +7,7 @@ import {
   EyeOff, Shield, LogOut, ShieldCheck, Trash2, UserMinus
 } from 'lucide-react';
 import { getAdminData, updateRound, deleteJob, deleteUser } from '../storage';
+import { supabase } from '../supabaseClient';
 import './AdminPage.css';
 
 // ─── Admin credentials (hardcoded, separate from users) ───────────────────────
@@ -198,6 +199,24 @@ function AdminDashboard({ onLogout }) {
 
   useEffect(() => {
     handleReload();
+
+    // Subscribe to realtime database changes for instant update without refreshing
+    const channel = supabase
+      .channel('admin-realtime-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        handleReload();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, () => {
+        handleReload();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rounds' }, () => {
+        handleReload();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (loading || !adminData) {
