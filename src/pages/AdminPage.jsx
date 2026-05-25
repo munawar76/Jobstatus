@@ -281,9 +281,54 @@ function AdminDashboard({ onLogout }) {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="admin-empty">
-            <Users size={40} />
-            <p>No users found</p>
+          <div className="admin-empty-state">
+            <div className="admin-empty">
+              <Users size={44} />
+              <h3>Awaiting Candidates</h3>
+              <p>No registered user accounts were found in your Supabase database.</p>
+            </div>
+
+            {/* Premium SQL Helper Card */}
+            <motion.div 
+              className="admin-sql-helper"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="admin-sql-helper__header">
+                <ShieldCheck size={18} style={{ color: 'var(--primary)' }} />
+                <span>Quick Setup: Enable Admin Global Read Access (Supabase RLS)</span>
+              </div>
+              <div className="admin-sql-helper__body">
+                <p>
+                  If you have already created users but they are not appearing here, it is because **Row-Level Security (RLS)** is active on your Supabase tables. 
+                  To grant your Admin Panel read privileges, copy and run this quick script in your **Supabase SQL Editor**:
+                </p>
+                <div className="admin-sql-code-container">
+                  <pre className="admin-sql-code">
+{`-- 🔓 Run this in your Supabase SQL Editor to allow the Admin Dashboard to load all users & applications!
+
+-- 1. Enable read access for public.profiles
+DROP POLICY IF EXISTS "Allow select for everyone" ON public.profiles;
+CREATE POLICY "Allow select for everyone" ON public.profiles FOR SELECT USING (true);
+
+-- 2. Enable read access for public.jobs
+DROP POLICY IF EXISTS "Allow select for everyone" ON public.jobs;
+CREATE POLICY "Allow select for everyone" ON public.jobs FOR SELECT USING (true);
+
+-- 3. Enable read access for public.rounds
+DROP POLICY IF EXISTS "Allow select for everyone" ON public.rounds;
+CREATE POLICY "Allow select for everyone" ON public.rounds FOR SELECT USING (true);`}
+                  </pre>
+                </div>
+                <div className="admin-sql-tip">
+                  <strong>💡 Easy Alternative (for testing):</strong> You can also disable RLS completely for your demo by running:
+                  <code style={{ display: 'block', marginTop: '6px', background: 'rgba(200,16,46,0.06)', padding: '6px 10px', borderRadius: '4px', color: 'var(--primary-dark)', fontSize: '0.82rem' }}>
+                    ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;
+                  </code>
+                </div>
+              </div>
+            </motion.div>
           </div>
         ) : (
           <div className="admin-users-list">
