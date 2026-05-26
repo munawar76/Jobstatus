@@ -147,6 +147,11 @@ function UserCard({ user, index, onReload }) {
                     {job.status === 'offer'  && <span className="admin-badge admin-badge--offer">🎉 Offer</span>}
                     {job.status === 'failed' && <span className="admin-badge admin-badge--failed">❌ Failed</span>}
                     {job.status === 'active' && <span className="admin-badge admin-badge--active">📋 Active</span>}
+                    {job.status !== 'hired' && job.status !== 'offer' && job.status !== 'failed' && job.status !== 'active' && (
+                      <span className="admin-badge" style={{ background: 'var(--surface-2)', color: 'var(--text-light)', border: '1.5px solid var(--border)' }}>
+                        ⚙️ {job.status}
+                      </span>
+                    )}
                   </div>
                   
                   <button

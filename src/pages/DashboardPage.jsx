@@ -178,8 +178,19 @@ function AddJobModal({ onClose, onAdd }) {
   );
 }
 
+import { useState as useLocalState } from 'react';
+
 // ---- Offer Popup ----
-function OfferPopup({ job, onHired, onClose }) {
+function OfferPopup({ job, onHired, onCustomStatus, onClose }) {
+  const [showCustomInput, setShowCustomInput] = useLocalState(false);
+  const [customReason, setCustomReason] = useLocalState('');
+
+  const handleCustomSubmit = (e) => {
+    e.preventDefault();
+    if (!customReason.trim()) return;
+    onCustomStatus(job.id, customReason.trim());
+  };
+
   return (
     <motion.div
       className="modal-backdrop"
@@ -204,14 +215,35 @@ function OfferPopup({ job, onHired, onClose }) {
         <h2>All Rounds Cleared!</h2>
         <p>You've passed every interview round at <strong>{job.company}</strong>!</p>
 
-        <div className="offer-choices">
-          <button className="offer-btn offer-btn--hired" onClick={() => onHired(job.id)}>
-            <Trophy size={18} /> Got the Job!
-          </button>
-          <button className="offer-btn offer-btn--waiting" onClick={onClose}>
-            <Clock size={18} /> Waiting for Offer Letter
-          </button>
-        </div>
+        {!showCustomInput ? (
+          <div className="offer-choices">
+            <button className="offer-btn offer-btn--hired" onClick={() => onHired(job.id)}>
+              <Trophy size={18} /> Got the Job!
+            </button>
+            <button className="offer-btn offer-btn--waiting" onClick={onClose}>
+              <Clock size={18} /> Waiting for Offer Letter
+            </button>
+            <button className="offer-btn offer-btn--custom" onClick={() => setShowCustomInput(true)}>
+              <Edit3 size={18} /> Custom Status / Reason
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleCustomSubmit} className="offer-custom-form">
+            <p className="custom-input-label">Enter custom status or reason:</p>
+            <input
+              type="text"
+              placeholder="e.g. Declined Offer, Low Budget, Cancelled..."
+              value={customReason}
+              onChange={e => setCustomReason(e.target.value)}
+              required
+              autoFocus
+            />
+            <div className="offer-custom-actions">
+              <button type="submit" className="custom-save-btn">Save Status</button>
+              <button type="button" className="custom-cancel-btn" onClick={() => setShowCustomInput(false)}>Cancel</button>
+            </div>
+          </form>
+        )}
       </motion.div>
     </motion.div>
   );
@@ -403,6 +435,18 @@ export default function DashboardPage() {
     }
   };
 
+  const handleCustomStatus = async (jobId, customStatusText) => {
+    try {
+      const job = jobs.find(j => j.id === jobId);
+      const updatedNotes = `[Outcome: ${customStatusText}]\n\n` + (job?.notes || '');
+      await updateJob(jobId, { status: customStatusText, notes: updatedNotes });
+      await loadJobs();
+      setOfferJob(null);
+    } catch (err) {
+      console.error("Failed to save custom status:", err);
+    }
+  };
+
   const handleDeleteJob = async (jobId) => {
     if (!window.confirm('Remove this application?')) return;
     try {
@@ -434,6 +478,7 @@ export default function DashboardPage() {
     if (job.status === 'hired') return { label: 'Hired!', cls: 'badge--hired' };
     if (job.status === 'offer') return { label: 'Offer!', cls: 'badge--offer' };
     if (job.status === 'failed') return { label: 'Failed', cls: 'badge--fail' };
+    if (job.status !== 'active') return { label: job.status, cls: 'badge--fail' };
     const passed = job.rounds.filter(r => r.status === 'passed').length;
     if (passed > 0) return { label: `${passed}/${job.rounds.length} done`, cls: 'badge--progress' };
     return { label: 'Not started', cls: 'badge--pending' };
@@ -510,20 +555,128 @@ export default function DashboardPage() {
       <main className="dashboard-main">
         <AnimatePresence mode="wait">
           {!selectedJob ? (
-            <motion.div
-              key="empty"
-              className="dashboard-empty"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-            >
-              <div className="empty-icon">📋</div>
-              <h2>Select an application</h2>
-              <p>Choose a company from the sidebar, or add a new application to get started.</p>
-              <button className="btn-hero-primary" onClick={() => setShowAddModal(true)}>
-                <Plus size={18} /> Add Your First Application
-              </button>
-            </motion.div>
+            jobs.length === 0 ? (
+              <motion.div
+                key="empty"
+                className="dashboard-empty"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+              >
+                <div className="empty-icon">📋</div>
+                <h2>Select an application</h2>
+                <p>Choose a company from the sidebar, or add a new application to get started.</p>
+                <button className="btn-hero-primary" onClick={() => setShowAddModal(true)}>
+                  <Plus size={18} /> Add Your First Application
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="summary-dashboard"
+                className="summary-dashboard"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {/* Dashboard Greeting Header */}
+                <div className="summary-dashboard__header">
+                  <h1>Hello, {user.name}! 🚀</h1>
+                  <p>Welcome back. Here is your overall job application pipeline at a glance.</p>
+                </div>
+
+                {/* Metric Summary Cards Grid */}
+                <div className="summary-dashboard__stats">
+                  <div className="summary-stat-card summary-stat-card--total">
+                    <div className="summary-stat-icon">📝</div>
+                    <div className="summary-stat-value">{jobs.length}</div>
+                    <div className="summary-stat-label">Total Applied</div>
+                  </div>
+                  <div className="summary-stat-card summary-stat-card--active">
+                    <div className="summary-stat-icon">📋</div>
+                    <div className="summary-stat-value">
+                      {jobs.filter(j => j.status === 'active' || j.status === 'offer').length}
+                    </div>
+                    <div className="summary-stat-label">In Progress</div>
+                  </div>
+                  <div className="summary-stat-card summary-stat-card--success">
+                    <div className="summary-stat-icon">🏆</div>
+                    <div className="summary-stat-value">
+                      {jobs.filter(j => j.status === 'hired').length}
+                    </div>
+                    <div className="summary-stat-label">Offers & Hired</div>
+                  </div>
+                  <div className="summary-stat-card summary-stat-card--closed">
+                    <div className="summary-stat-icon">✕</div>
+                    <div className="summary-stat-value">
+                      {jobs.filter(j => j.status === 'failed' || (j.status !== 'active' && j.status !== 'offer' && j.status !== 'hired')).length}
+                    </div>
+                    <div className="summary-stat-label">Closed / Rejected</div>
+                  </div>
+                </div>
+
+                {/* Master Overview Table Card */}
+                <div className="summary-dashboard__table-card">
+                  <div className="summary-table-header">
+                    <h3>Master Application Summary</h3>
+                    <span className="summary-table-badge">All Applications</span>
+                  </div>
+                  <div className="summary-table-wrapper">
+                    <table className="summary-table">
+                      <thead>
+                        <tr>
+                          <th>Company</th>
+                          <th>Target Role</th>
+                          <th>Interview Progress</th>
+                          <th>Current Status</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {jobs.map(job => {
+                          const badge = getJobStatusBadge(job);
+                          const passedRounds = job.rounds.filter(r => r.status === 'passed').length;
+                          return (
+                            <tr key={job.id} onClick={() => setSelectedJobId(job.id)} className="summary-table-row-clickable">
+                              <td className="company-cell">
+                                <div className="company-logo-avatar">{job.company[0].toUpperCase()}</div>
+                                <strong>{job.company}</strong>
+                              </td>
+                              <td className="role-cell">{job.role}</td>
+                              <td>
+                                <div className="table-rounds-progress">
+                                  <span className="progress-text">{passedRounds}/{job.rounds.length} passed</span>
+                                  <div className="progress-bar-bg">
+                                    <div 
+                                      className="progress-bar-fill" 
+                                      style={{ width: `${(passedRounds / job.rounds.length) * 100}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <span className={`badge ${badge.cls}`}>{badge.label}</span>
+                              </td>
+                              <td>
+                                <button 
+                                  className="table-action-view" 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedJobId(job.id);
+                                  }}
+                                >
+                                  View Pipeline →
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </motion.div>
+            )
           ) : (
             <motion.div
               key={selectedJob.id}
@@ -573,6 +726,17 @@ export default function DashboardPage() {
                        transition={{ type: 'spring' }}
                     >
                       ❌ Process Ended
+                    </motion.div>
+                  )}
+                  {selectedJob.status !== 'active' && selectedJob.status !== 'hired' && selectedJob.status !== 'offer' && selectedJob.status !== 'failed' && (
+                    <motion.div
+                       className="failed-status-badge"
+                       initial={{ scale: 0 }}
+                       animate={{ scale: 1 }}
+                       transition={{ type: 'spring' }}
+                       style={{ background: 'var(--surface-2)', color: 'var(--text-light)', border: '1px solid var(--border)' }}
+                    >
+                      ⚙️ {selectedJob.status}
                     </motion.div>
                   )}
                   <button
@@ -629,6 +793,22 @@ export default function DashboardPage() {
                   <div>
                     <strong>Process Ended (Failed Round)</strong>
                     <p>One or more rounds failed. Don't worry, the next opportunity is just around the corner!</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Custom status inline card */}
+              {selectedJob.status !== 'active' && selectedJob.status !== 'hired' && selectedJob.status !== 'offer' && selectedJob.status !== 'failed' && (
+                <motion.div
+                  className="failed-inline-card"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  style={{ background: 'var(--surface-2)', borderColor: 'var(--border)' }}
+                >
+                  <span style={{ filter: 'grayscale(0.2)' }}>💡</span>
+                  <div>
+                    <strong>Custom Outcome: {selectedJob.status}</strong>
+                    <p>You recorded a custom outcome for this application. You can review details or write your thoughts below!</p>
                   </div>
                 </motion.div>
               )}
@@ -751,6 +931,7 @@ export default function DashboardPage() {
           <OfferPopup
             job={offerJob}
             onHired={handleMarkHired}
+            onCustomStatus={handleCustomStatus}
             onClose={() => setOfferJob(null)}
           />
         )}
