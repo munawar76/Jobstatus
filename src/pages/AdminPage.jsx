@@ -14,34 +14,22 @@ import './AdminPage.css';
 const ADMIN_PASSWORD = 'admin@2026';
 const ADMIN_SESSION_KEY = 'jobstatus_admin_session';
 
-// ─── Round Pill (Now Interactive for Admins!) ────────────────────────────────
-function RoundPill({ round, jobId, onUpdateRound }) {
+// ─── Round Pill (Read-Only Status Badge for Admins) ───────────────────────────
+function RoundPill({ round }) {
   const config = {
     passed:  { bg: '#D3F9E2', color: '#1A7D44', label: '✓ Pass' },
     failed:  { bg: '#FFE3E5', color: '#C53030', label: '✕ Fail' },
     pending: { bg: '#F0F4FF', color: '#6B7AB8', label: '○ Pending' },
   };
   const c = config[round.status];
-  
-  const cycleStatus = (e) => {
-    e.stopPropagation();
-    const nextStatus = {
-      pending: 'passed',
-      passed: 'failed',
-      failed: 'pending',
-    }[round.status];
-    onUpdateRound(jobId, round.id, nextStatus);
-  };
 
   return (
-    <button
-      className="admin-round-pill admin-round-pill--interactive"
-      style={{ background: c.bg, color: c.color, border: 'none', cursor: 'pointer' }}
-      onClick={cycleStatus}
-      title="Click to cycle status (Pending -> Pass -> Fail)"
+    <span
+      className="admin-round-pill"
+      style={{ background: c.bg, color: c.color }}
     >
       {round.name}: {c.label}
-    </button>
+    </span>
   );
 }
 
@@ -149,8 +137,6 @@ function UserCard({ user, index, onReload }) {
                     <RoundPill
                       key={r.id}
                       round={r}
-                      jobId={job.id}
-                      onUpdateRound={handleUpdateRound}
                     />
                   ))}
                 </div>
