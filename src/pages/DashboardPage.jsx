@@ -205,6 +205,9 @@ function OfferPopup({ job, onHired, onCustomStatus, onClose }) {
         exit={{ opacity: 0, scale: 0.7 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20 }}
       >
+        <button className="offer-popup-close" onClick={onClose} aria-label="Close modal">
+          <X size={18} />
+        </button>
         <motion.div
           className="offer-emoji"
           animate={{ rotate: [0, -10, 10, -10, 10, 0] }}

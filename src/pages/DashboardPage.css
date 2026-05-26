@@ -291,9 +291,31 @@
 
 /* ── Offer Popup ─────────────────────────── */
 .offer-popup {
+  position: relative;
   background:white; border-radius:var(--radius-xl); padding:46px 38px;
   text-align:center; max-width:400px; width:100%;
   box-shadow:var(--shadow-xl); border:2px solid rgba(34,197,94,0.25);
+}
+.offer-popup-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.offer-popup-close:hover {
+  background: var(--danger-pale);
+  color: var(--danger);
+  transform: rotate(90deg);
 }
 .offer-emoji { font-size:3.8rem; margin-bottom:14px; }
 .offer-popup h2 { font-family:var(--font-display); font-size:1.7rem; font-weight:800; color:var(--dark); margin-bottom:9px; }
